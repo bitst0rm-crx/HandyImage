@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		Handy Image
-// @version		2026.07.02
+// @version		2026.07.30
 // @author		Owyn
 // @contributor	ubless607, bitst0rm
 // @namespace	handyimage
@@ -936,6 +936,7 @@
 // @match		https://goonbox.cr/img/*
 // @match		https://amaleaked.pk/media/image/*
 // @match		https://amaleaked.pk/media/video/*
+// @match		https://shotcan.com/image/*
 // ==/UserScript==
 
 "use strict";
@@ -1454,6 +1455,7 @@ function makeworld()
 	case "ltdfoto.ru":
 	case "vgy.me":
 	case "hamsterimg.net":
+	case "shotcan.com":
 		i = document.querySelector('meta[property="og:image"], [name="og:image"]');
 		if(i)
 		{
