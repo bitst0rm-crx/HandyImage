@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		Handy Image
-// @version		2026.07.30
+// @version		2026.08.04
 // @author		Owyn
 // @contributor	ubless607, bitst0rm
 // @namespace	handyimage
@@ -1769,6 +1769,11 @@ function makeworld()
 	case "fastpic.org":
 	case "slowpic.xyz":
 		i = q('img[src*="/big/"]');
+		if(!i) 
+		{
+			i = q('a[href*="&dl=1"]');
+			if(i){i.src = i.href;}
+		}
 		break;
 	case "bayimg.com":
 		i = q('img#mainImage');
