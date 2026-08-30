@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		Handy Image
-// @version		2026.08.07
+// @version		2026.08.30
 // @author		Owyn
 // @contributor	ubless607, bitst0rm
 // @namespace	handyimage
@@ -23,8 +23,8 @@
 // @sandbox		JavaScript
 // @compatible	Chrome
 // @compatible	Firefox
-// @match		https://www.imagebam.com/image/*
-// @match		https://www.imagebam.com/view/*
+// @match		https://*.imagebam.com/image/*
+// @match		https://*.imagebam.com/view/*
 // @match		http://imgchili.net/show*
 // @match		*://imgbox.com/*
 // @match		*://*.imagetwist.com/*
@@ -1055,7 +1055,13 @@ function ws()
 function sanitize() // lol I'm such a hacker
 {
 	removeAllListeners();
-	let lasttask = unsafeWindow.setTimeout(function() {},0);
+	let lasttask = 4000;
+	try {
+		lasttask = unsafeWindow.setTimeout(function() {},0);
+	} catch (error) {
+		console.warn("stupid uBlock breaks timeouts even when disabled:");
+		console.error(error);
+	}
 	for(let n = lasttask; n > 0; n--)
 	{
 		//if(n !== tg) // unsafeWindow.clear can't clear window.tasks set in the userscript but lets be safe
@@ -1769,7 +1775,7 @@ function makeworld()
 		break;
 	case "fastpic.ru":
 	case "fastpic.org":
-		j = true;
+		//j = true;
 	case "slowpic.xyz":
 		i = q('img[src*="/big/"]');
 		if(!i) 
@@ -3223,6 +3229,9 @@ function makeworld()
 	}
 	if(i && i.src)
 	{
+		console.debug("Found: " + i + " with src: " + i.src);
+		//let clone = protected_createElement(i.nodeName);
+		//clone.src = i.src;
 		bStopScripts = true; // in case JS was allowed before
 		observer.disconnect();
 		function clr_pgn()
@@ -3230,13 +3239,15 @@ function makeworld()
 			unsafeWindow.open = null;
 			unsafeWindow.onload = null;
 			unsafeWindow.onbeforeunload = null;
+			unsafeWindow.onclick = null;
+			unsafeWindow.document.onclick = null;
 			document.replaceChild(document.importNode(document.implementation.createHTMLDocument("").documentElement, true), document.documentElement);
 			unsafeWindow.document.createElement = unsafeWindow.console.debug;
 			document.head.innerHTML = '<meta name="referrer" content="'+referrer_policy+'">';
 		}
 		if (i.nodeName === "VIDEO" || ext_list_video.indexOf(i.src.split('.').pop().split('?')[0].toLowerCase()) >= 0)
 		{
-			console.log("Found a video");
+			console.debug("Found a video");
 			is_video = true;
 		}
 		else if (ext_list_not_image.indexOf(i.src.split('.').pop().split('?')[0].toLowerCase()) >= 0)
@@ -3248,7 +3259,9 @@ function makeworld()
 		ws();
 		sanitize();
 		clr_pgn();
+		console.debug("Found ok?: " + i + " with src: " + i.src);
 		window.removeEventListener('beforescriptexecute', onscript, true);
+		//i = clone;
 		makeimage();
 	}
 	else // try again
