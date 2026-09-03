@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		Handy Image
-// @version		2026.08.30
+// @version		2026.09.02
 // @author		Owyn
 // @contributor	ubless607, bitst0rm
 // @namespace	handyimage
@@ -489,6 +489,12 @@
 // @match		https://safebooru.org/index.php?page=post&s=view&id=*
 // @match		https://hypnohub.net/index.php?page=post&s=view&id=*
 // @match		https://danbooru.donmai.us/posts/*
+// @match		https://donmai.moe/posts/*
+// @match		https://shima.donmai.us/posts/*
+// @match		https://booru.allthefallen.moe/posts/*
+// @match		https://aibooru.online/posts/*
+// @match		https://tbib.org/index.php?page=post&s=view&id=*
+// @match		https://xbooru.com/index.php?page=post&s=view&id=*
 // @match		http://konachan.com/post/show/*
 // @match		http://konachan.net/post/show/*
 // @match		https://yande.re/post/show/*
@@ -740,8 +746,10 @@
 // @match		https://*.xaoutchouc.live/img-*.html
 // @match		https://*.picusha.net/?v=*
 // @match		https://e621.net/posts/*
+// @match		https://e6ai.net/posts/*
 // @match		https://rule34.xxx/index.php?page=post&s=view&id=*
 // @match		https://*.rule34hentai.net/post/view/*
+// @match		https://r-34.xyz/post/*
 // @match		https://pixs.cx/*
 // @match		*://mshelxxx.ru.com//img-*.html
 // @match		*://www.hentai-foundry.com/pictures/*
@@ -1963,6 +1971,8 @@ function makeworld()
 	case "rule34.xxx":
 		sessionStorage.setItem("lastRefresh", Date.now()); // fix to keep 'R' hotkey working
 	case "rule34.us":
+	case "xbooru.com":
+	case "tbib.org":
 		j = true;
 		i = q('a[href*="/images/"][href*="' + host + '/"]');
 		if(i){use_booru_tags_in_dl_filename(); i.src = i.href;}
@@ -1975,14 +1985,24 @@ function makeworld()
 	// 	break;
 	case "rule34hentai.net":
 	case "danbooru.donmai.us":
+	case "donmai.moe":
+	case "shima.donmai.us":
+	case "booru.allthefallen.moe":
+	case "aibooru.online":
 	case "weasyl.com":
 		i = q('a[download]');
 		if(i){use_booru_tags_in_dl_filename(); i.src = i.href;}
 		break;
 	case "e621.net":
+	case "e6ai.net":
 		j = true;
-		i = q('.ptbr-fullscreen a[href*="static1.e621.net/data/"]');
+		i = q('[data-hotkey="download"]');
 		if(i){use_booru_tags_in_dl_filename(); i.src = i.href;}
+		break;
+	case "r-34.xyz":
+		j = true;
+		i = q('.container > .con > img, .container > .con > video > source');
+		if(i){use_booru_tags_in_dl_filename(); i.src = i.src.replace(".480", "").replace(".small", "");}
 		break;
 	case "gelbooru.com":
 	case "youhate.us":
@@ -3245,7 +3265,7 @@ function makeworld()
 			unsafeWindow.document.createElement = unsafeWindow.console.debug;
 			document.head.innerHTML = '<meta name="referrer" content="'+referrer_policy+'">';
 		}
-		if (i.nodeName === "VIDEO" || ext_list_video.indexOf(i.src.split('.').pop().split('?')[0].toLowerCase()) >= 0)
+		if (i.nodeName === "VIDEO" || i.nodeName === "SOURCE" || ext_list_video.indexOf(i.src.split('.').pop().split('?')[0].toLowerCase()) >= 0)
 		{
 			console.debug("Found a video");
 			is_video = true;
@@ -3274,21 +3294,23 @@ function makeworld()
 var grab_fav_tags = []; // set in Custom JS
 function use_booru_tags_in_dl_filename()
 {
-	let artist = document.querySelectorAll(".tag-type-artist a:not([href*='/books?'])[href*='tags='],.tag-type-idol a:not([href*='/books?'])[href*='tags='], .artist-tag > a, a.search-tag[itemprop='author'], a.model, .user-info-box .username > a, .tag-artist");
+	let artist = document.querySelectorAll(".tag-type-artist a:not([href*='/books?'])[href*='tags='],.tag-type-idol a:not([href*='/books?'])[href*='tags='], .artist-tag > a, a.search-tag[itemprop='author'], a.model, .user-info-box .username > a, .tag-artist, .b-chip-color_artist, [data-category=artist][data-name], [data-category=director][data-name], .artist-tag-list > li[data-tag-name]");
 	for(let n = 0; n < artist.length; n++)
 	{
 		if(artist[n]?.text == "?") continue;
-		if(artist[n].dataset?.name) {filename = "by " + decodeURIComponent(artist[n].dataset.name).replaceAll(" ", "_") + " " + filename;}
-		else {filename = "by " + artist[n].text.replaceAll(" ", "_") + " " + filename;}
+		if(artist[n].dataset?.name || artist[n].dataset?.tagName) {filename = "by " + decodeURIComponent(artist[n].dataset.name || artist[n].dataset.tagName).replaceAll(" ", "_") + " " + filename;}
+		else {filename = "by " + (artist[n].text?.replaceAll(" ", "_") || artist[n].textContent.replaceAll(" ", "_")) + " " + filename;}
 	}
+	console.debug("found artist: ", artist);
 
-	let character = document.querySelectorAll(".tag-type-character a:not([href*='/books?'])[href*='tags='], .character-tag > a, .character-tag-list a.search-tag, a.character, .tag-character");
+	let character = document.querySelectorAll(".tag-type-character a:not([href*='/books?'])[href*='tags='], .character-tag > a, a.character, .tag-character, .b-chip-color_character, [data-category=tag-character][data-name], .character-tag-list > li[data-tag-name]");
 	for(let n = 0; n < character.length; n++)
 	{
 		if(character[n]?.text == "?") continue;
-		if(character[n].dataset?.name) {filename = decodeURIComponent(character[n].dataset.name).replaceAll(" ", "_") + " " + filename;}
-		else {filename = character[n].text.replaceAll(" ", "_") + " " + filename;}
+		if(character[n].dataset?.name || character[n].dataset?.tagName) {filename = decodeURIComponent(character[n].dataset.name || character[n].dataset.tagName).replaceAll(" ", "_") + " " + filename;}
+		else {filename = (character[n].text?.replaceAll(" ", "_") || character[n].textContent.replaceAll(" ", "_")) + " " + filename;}
 	}
+	console.debug("found character: ", character);
 
 	/*if(character.length === 0)
 	{
@@ -3300,12 +3322,13 @@ function use_booru_tags_in_dl_filename()
 			break; // just one cuz else it'd get long
 		}
 	}*/
-	let general_tags = document.querySelectorAll(".tag-link, .tag-type-general a:not([href*='/books?'])[href*='tags='], .tag-type-metadata a:not([href*='/books?'])[href*='tags='], .tag-type-genre > a, .general-tag > a, .general-tag-list > .tag-type-0 > a.search-tag, a.search-tag, div#tagLink > a,.tags-list a, .tag-list-item, a.tag");
+	let general_tags = document.querySelectorAll(".tag-link, .tag-type-general a:not([href*='/books?'])[href*='tags='], .tag-type-metadata a:not([href*='/books?'])[href*='tags='], .tag-type-genre > a, .general-tag > a, .general-tag-list > .tag-type-0 > a.search-tag, a.search-tag, div#tagLink > a,.tags-list a, .tag-list-item, a.tag, a.b-link:has(.b-chip-color_general)");
 	let general_tags_text = [];
 	for(let n = 0; n < general_tags.length; n++)
 	{
-		general_tags_text.push(general_tags[n]?.text || general_tags[n].dataset?.name || "no_tag");
+		general_tags_text.push((general_tags[n].text && general_tags[n].text.replaceAll(" ", "_")) || general_tags[n].dataset?.name || "no_tag");
 	}
+	console.debug("found tags: ", general_tags_text);
 
 	function process_grabbed_tags()
 	{
@@ -3316,7 +3339,7 @@ function use_booru_tags_in_dl_filename()
 			return;
 		}
 		if(cfg_js && cfg_js.indexOf("grab_fav_tags") != -1) {grab_fav_tags = cfg_js.substring(cfg_js.indexOf("[")+1,cfg_js.indexOf("]")).replaceAll(" ", "").replaceAll("_", " ").replaceAll(/\n/g, '').replaceAll(/(?<!\\)'/g, "").replaceAll("\\'","'").replaceAll('"','').toLowerCase().split(",");} // load custom tags // also bypass CSP
-		console.debug("your favorite tags: "+ grab_fav_tags);
+		console.debug("your favorite tags: ", grab_fav_tags);
 		if(grab_fav_tags.length)
 		{
 			for(let n = 0; n < general_tags_text.length; n++)
