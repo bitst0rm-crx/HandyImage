@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		Handy Image
-// @version		2026.09.02
+// @version		2026.09.11
 // @author		Owyn
 // @contributor	ubless607, bitst0rm
 // @namespace	handyimage
@@ -947,6 +947,7 @@
 // @match		https://shotcan.com/image/*
 // @match		https://*.thirstpics.cc/p/*
 // @match		https://*.thirstpics.cc/v/*
+// @match		https://www.imagepond.net/i/*
 // ==/UserScript==
 
 "use strict";
@@ -1472,6 +1473,7 @@ function makeworld()
 	case "vgy.me":
 	case "hamsterimg.net":
 	case "shotcan.com":
+	case "imagepond.net":
 		i = document.querySelector('meta[property="og:image"], [name="og:image"]');
 		if(i)
 		{
